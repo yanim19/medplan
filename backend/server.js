@@ -1,12 +1,44 @@
+
+
 const express = require('express');
+const mysql = require('mysql2');
+const cors = require('cors');
+
 const app = express();
 
 app.use(express.json());
+app.use(cors());
 
-app.use('/auth', require('./routes/auth'));
-app.use('/appointments', require('./routes/appointments'));
-app.use('/planning', require('./routes/planning'));
+
+const db = mysql.createConnection({
+  host: 'localhost',
+  user: 'root',
+  password: '',
+  database: 'medplan_db'
+});
+
+db.connect((err) => {
+  if (err) {
+    console.log("Erreur BD");
+  } else {
+    console.log("Connecté à MySQL !");
+  }
+});
+
+
+app.post('/register', (req, res) => {
+  const { nom, prenom, email, password, role } = req.body;
+
+  const sql = `INSERT INTO users (nom, prenom, email, password, role) VALUES (?, ?, ?, ?, ?)`;
+
+  db.query(sql, [nom, prenom, email, password, role], (err, result) => {
+    if (err) {
+      return res.send("Erreur insertion");
+    }
+    res.send("Utilisateur ajouté !");
+  });
+});
 
 app.listen(3000, () => {
-  console.log("Serveur démarré sur http://localhost:3000");
+  console.log("Serveur lancé sur http://localhost:3000");
 });
