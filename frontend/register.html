@@ -33,6 +33,26 @@
 
     <br>
     <a href="login.html">Déjà inscrit ? Se connecter</a>
+<script>
+document.querySelector("form").addEventListener("submit", function(e) {
+  e.preventDefault();
 
+  const nom = document.querySelector("#nom").value;
+  const prenom = document.querySelector("#prenom").value;
+  const email = document.querySelector("#email").value;
+  const password = document.querySelector("#password").value;
+  const role = document.querySelector("#role").value;
+
+  fetch("http://localhost:3000/register", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ nom, prenom, email, password, role })
+  })
+  .then(res => res.text())
+  .then(data => alert(data));
+});
+</script>
 </body>
 </html>
