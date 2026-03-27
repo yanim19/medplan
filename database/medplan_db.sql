@@ -36,11 +36,7 @@ CREATE TABLE `appointments` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `appointments`
---
 
-INSERT INTO `appointments` (`id`, `patient_id`, `doctor_id`, `date`, `status`) VALUES
-(1, 1, 1, '2026-02-10 10:00:00', 'confirmé');
 
 -- --------------------------------------------------------
 
@@ -55,11 +51,7 @@ CREATE TABLE `availability` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `availability`
---
 
-INSERT INTO `availability` (`id`, `doctor_id`, `date`) VALUES
-(1, 1, '2026-02-10 10:00:00');
 
 -- --------------------------------------------------------
 
@@ -74,11 +66,6 @@ CREATE TABLE `doctors` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `doctors`
---
-
-INSERT INTO `doctors` (`id`, `user_id`, `specialite`) VALUES
-(1, 3, 'Cardiologue');
 
 -- --------------------------------------------------------
 
@@ -97,13 +84,7 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `users`
---
 
-INSERT INTO `users` (`id`, `nom`, `prenom`, `email`, `password`, `role`, `created_at`) VALUES
-(1, 'Dridi', 'Ranim', 'ranim@test.com', '123', 'patient', '2026-03-26 22:17:43'),
-(2, 'Saidi', 'Siwar', 'siwar@test.com', '123', 'admin', '2026-03-26 22:17:43'),
-(3, 'Souidi', 'Saif', 'saif@test.com', '123', 'medecin', '2026-03-26 22:17:43');
 
 --
 -- Indexes for dumped tables
