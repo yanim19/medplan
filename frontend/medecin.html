@@ -19,11 +19,37 @@
     <tr>
         <td>10/02/2026 - 10:00</td>
         <td>
-        <button>Modifier</button>
-        <button>Supprimer</button>
+            <button onclick="modifier(1)">Modifier</button>
+            <button onclick="supprimer(1)">Supprimer</button>
         </td>
     </tr>
+       
     </table>
+    <script>
+
+// supprimer
+function supprimer(id){
+  fetch("http://localhost:3000/availability/" + id, {
+    method: "DELETE"
+  })
+  .then(res => res.text())
+  .then(data => alert(data));
+}
+
+// modifier (simple version)
+function modifier(id){
+  const nouvelleDate = prompt("Nouvelle date ?");
+  
+  fetch("http://localhost:3000/availability/" + id, {
+    method: "PUT",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ date: nouvelleDate })
+  })
+  .then(res => res.text())
+  .then(data => alert(data));
+}
+
+</script>
 
 </body>
 </html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Médecins</title>
+</head>
+<body>
+
+<h2>Liste des médecins</h2>
+
+<div id="doctors"></div>
+
+<script>
+fetch("http://localhost:3000/doctors")
+.then(res => res.json())
+.then(data => {
+  let html = "";
+
+  data.forEach(doc => {
+    html += `
+      <div>
+        <h3>${doc.nom} ${doc.prenom}</h3>
+        <p>${doc.specialite}</p>
+        <button onclick="reserver(${doc.id})">Réserver</button>
+      </div>
+    `;
+  });
+
+  document.getElementById("doctors").innerHTML = html;
+});
+
+function reserver(doctor_id){
+  fetch("http://localhost:3000/appointments", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      patient_id: 1,
+      doctor_id: doctor_id,
+      date: "2026-02-10 10:00:00"
+    })
+  })
+  .then(res => res.text())
+  .then(data => alert(data));
+}
+</script>
+
+</body>
+</html>

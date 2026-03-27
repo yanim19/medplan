@@ -6,31 +6,102 @@
   <title>Espace Patient</title>
 </head>
 <body>
+<body>
 
-    <h2>Réserver un rendez-vous</h2>
+<h2>Réserver un rendez-vous</h2>
 
-    <table border="1">
+<table border="1">
+  <thead>
     <tr>
-        <th>Médecin</th>
-        <th>Date</th>
-        <th>Action</th>
+      <th>Médecin</th>
+      <th>Date</th>
+      <th>Action</th>
     </tr>
-    <tr>
-        <td>Dr Ali</td>
-        <td>10/02/2026 - 10:00</td>
-        <td><button>Réserver</button></td>
-    </tr>
-    <tr>
-        <td>Dr Sana</td>
-        <td>10/02/2026 - 14:00</td>
-        <td><button>Réserver</button></td>
-    </tr>
-    </table>
+  </thead>
+  <tbody id="dispo"></tbody>
+</table>
 
-    <h3>Mes rendez-vous</h3>
-    <ul>
-    <li>10/02/2026 - Dr Ali <button>Annuler</button></li>
-    </ul>
+<h3>Mes rendez-vous</h3>
+<ul id="mesRDV"></ul>
 
+<script>
+
+// afficher médecins
+fetch("http://localhost:3000/doctors")
+.then(res => res.json())
+.then(data => {
+  let html = "";
+
+  data.forEach(doc => {
+    html += `
+      <tr>
+        <td>${doc.nom} ${doc.prenom}</td>
+        <td>2026-02-10 10:00</td>
+        <td>
+          <button onclick="reserver(${doc.id})">Réserver</button>
+        </td>
+      </tr>
+    `;
+  });
+
+  document.getElementById("dispo").innerHTML = html;
+});
+
+// réserver
+function reserver(doctor_id){
+  fetch("http://localhost:3000/appointments", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      patient_id: 1,
+      doctor_id: doctor_id,
+      date: "2026-02-10 10:00:00"
+    })
+  })
+  .then(res => res.text())
+  .then(data => {
+    alert(data);
+    loadRDV(); // recharge liste
+  });
+}
+
+// afficher mes RDV
+function loadRDV(){
+  fetch("http://localhost:3000/appointments")
+  .then(res => res.json())
+  .then(data => {
+    let html = "";
+
+    data.forEach(r => {
+      html += `
+        <li>
+          ${r.date} - Dr ${r.doctor_id}
+          <button onclick="annuler(${r.id})">Annuler</button>
+        </li>
+      `;
+    });
+
+    document.getElementById("mesRDV").innerHTML = html;
+  });
+}
+
+// annuler
+function annuler(id){
+  fetch("http://localhost:3000/appointments/" + id, {
+    method: "DELETE"
+  })
+  .then(res => res.text())
+  .then(data => {
+    alert(data);
+    loadRDV();
+  });
+}
+
+// charger au début
+loadRDV();
+
+</script>
+
+</body>
 </body>
 </html>
