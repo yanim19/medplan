@@ -39,6 +39,24 @@ app.post('/register', (req, res) => {
   });
 });
 
+
 app.listen(3000, () => {
   console.log("Serveur lancé sur http://localhost:3000");
 });
+app.get('/availability/:id', (req, res) => {
+  const id = req.params.id;
+
+  db.query(
+    "SELECT * FROM availability WHERE doctor_id = ?",
+    [id],
+    (err, result) => {
+      if (err) return res.send(err);
+      res.json(result);
+    }
+  );
+});
+function showAvailability(id){
+  fetch(`http://localhost:3000/availability/${id}`)
+  .then(res => res.json())
+  .then(data => alert(JSON.stringify(data)));
+}
