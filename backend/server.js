@@ -43,6 +43,18 @@ app.post('/register', (req, res) => {
 app.listen(3000, () => {
   console.log("Serveur lancé sur http://localhost:3000");
 });
+app.get('/doctors', (req, res) => {
+  const sql = `
+    SELECT doctors.id, users.nom, users.prenom, doctors.specialite
+    FROM doctors
+    JOIN users ON doctors.user_id = users.id
+  `;
+
+  db.query(sql, (err, result) => {
+    if (err) return res.send(err);
+    res.json(result);
+  });
+});
 app.get('/availability/:id', (req, res) => {
   const id = req.params.id;
 
