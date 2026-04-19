@@ -24,6 +24,45 @@
         </td>
     </tr>
     </table>
+  <h2>Liste des médecins disponibles</h2>
+
+<div id="loading">Chargement...</div>
+<div id="doctors"></div>
+
+<script>
+fetch("http://localhost:3000/doctors")
+  .then(response => response.json())
+  .then(data => {
+
+    document.getElementById("loading").style.display = "none";
+
+    let html = "";
+
+    data.forEach(doc => {
+      html += `
+        <div class="card">
+          <h3>${doc.nom} ${doc.prenom}</h3>
+          <p>Spécialité : ${doc.specialite}</p>
+          <button onclick="voirDisponibilite(${doc.id})">
+            Voir disponibilité
+          </button>
+        </div>
+      `;
+    });
+
+    document.getElementById("doctors").innerHTML = html;
+  })
+  .catch(error => {
+    document.getElementById("loading").innerHTML =
+      "Erreur lors du chargement des médecins ❌";
+    console.error(error);
+  });
+
+function voirDisponibilite(id) {
+  alert("Médecin sélectionné ID : " + id);
+}
+</script>
+ 
 
 </body>
 </html>
