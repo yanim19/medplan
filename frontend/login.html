@@ -9,18 +9,19 @@
 
     <h2>Connexion</h2>
 
-    <form>
+    <form id="loginForm" method="post">
     <label>Email :</label>
-    <input type="email"><br><br>
+    <input type="email" id="email"><br><br>
 
     <label>Mot de passe :</label>
-    <input type="password"><br><br>
+    <input type="password" id="password"><br><br>
 
     <button type="submit">Se connecter</button>
     </form>
 
     <br>
     <a href="register.html">Créer un compte</a>
+
     <script>
         document.getElementById("loginForm").addEventListener("submit", function(e){
 
@@ -63,6 +64,5 @@
 
         });
 </script>
-
 </body>
 </html>
