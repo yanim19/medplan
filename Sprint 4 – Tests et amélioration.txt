@@ -1,0 +1,17 @@
+Sprint 4 – Tests et amélioration
+
+Objectif :
+Vérifier le bon fonctionnement du système.
+
+Tâches réalisées :
+
+-Test complet de toutes les API.
+
+-Correction des erreurs.
+
+-Vérification de la connexion avec la base MySQL.
+
+-Préparation de la démonstration finale.
+
+Résultat :
+L’application fonctionne correctement et toutes les fonctionnalités principales sont disponibles.

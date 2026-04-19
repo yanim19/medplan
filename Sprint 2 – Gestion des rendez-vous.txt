@@ -1,0 +1,27 @@
+Sprint 2 – Gestion des rendez-vous
+
+Objectif :
+Permettre aux patients de réserver un rendez-vous.
+
+User Stories :
+
+-En tant que patient, je veux réserver un rendez-vous.
+
+-En tant que patient, je veux voir mes rendez-vous.
+
+-En tant que patient, je veux annuler un rendez-vous.
+
+Tâches réalisées :
+
+-Création de la table appointments.
+
+-Développement du fichier appointments.js.
+
+-Création de l’API /appointments/create.
+
+-Création de l’API /appointments pour afficher les rendez-vous.
+
+-Création de l’API delete appointment.
+
+Résultat :
+Les utilisateurs peuvent créer, voir et supprimer leurs rendez-vous.

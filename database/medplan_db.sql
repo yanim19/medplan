@@ -26,6 +26,8 @@ SET time_zone = "+00:00";
 --
 -- Table structure for table `appointments`
 --
+CREATE DATABASE medplan;
+USE medplan;
 
 CREATE TABLE `appointments` (
   `id` int(11) NOT NULL,

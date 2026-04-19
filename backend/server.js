@@ -19,12 +19,17 @@ const db = mysql.createConnection({
 
 db.connect((err) => {
   if (err) {
-    console.log("Erreur BD");
+    console.log("Erreur BD", err);
   } else {
     console.log("Connecté à MySQL !");
   }
 });
 
+// Import your auth routes
+const authRoutes = require("./routes/auth");
+
+// Mount the routes - THIS IS THE KEY STEP
+app.use("/api/auth", authRoutes);
 
 app.post('/register', (req, res) => {
   const { nom, prenom, email, password, role } = req.body;

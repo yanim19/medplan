@@ -9,12 +9,12 @@
 
     <h2>Connexion</h2>
 
-    <form>
+    <form id="loginForm" method="post">
     <label>Email :</label>
-    <input type="email"><br><br>
+    <input type="email" id="email"><br><br>
 
     <label>Mot de passe :</label>
-    <input type="password"><br><br>
+    <input type="password" id="password"><br><br>
 
     <button type="submit">Se connecter</button>
     </form>
@@ -22,5 +22,47 @@
     <br>
     <a href="register.html">Créer un compte</a>
 
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", function(e){
+
+          e.preventDefault();
+
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+
+          fetch("http://localhost:3000/api/auth/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email, password })
+          })
+          .then(res => res.json())
+          .then(data => {
+            alert(data.message);
+            console.log(data);
+          })
+          
+        .then(data => {
+
+          if(data.message === "Connexion réussie") {
+
+            // 🔥 sauvegarder utilisateur
+            localStorage.setItem("user", JSON.stringify(data.user));
+
+            alert("Connexion réussie");
+
+            // redirection
+            window.location.href = "dashboard.html";
+          }
+           else {
+            alert(data.message);
+          }
+
+        })
+      .catch(err => console.log(err));
+
+        });
+</script>
 </body>
 </html>
