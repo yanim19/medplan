@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <link rel="stylesheet" href="style.css">
-  <title>Connexion</title>
-</head>
-<body>
+  <head>
+      <meta charset="UTF-8">
+      <link rel="stylesheet" href="style.css">
+      <title>Connexion</title>
+  </head>
+  <body>
 
     <h2>Connexion</h2>
 
@@ -23,27 +23,24 @@
     <a href="register.html">Créer un compte</a>
 
     <script>
-        document.getElementById("loginForm").addEventListener("submit", function(e){
+      document.getElementById("loginForm").addEventListener("submit", function(e){
 
-          e.preventDefault();
+        e.preventDefault();
 
-          const email = document.getElementById("email").value;
-          const password = document.getElementById("password").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
 
-          fetch("http://localhost:3000/api/auth/login", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ email, password })
-          })
-          .then(res => res.json())
-          .then(data => {
-            alert(data.message);
-            console.log(data);
-          })
-          
+        fetch("http://localhost:3000/api/auth/login", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ email, password })
+        })
+        .then(res => res.json())
         .then(data => {
+
+          console.log(data);
 
           if(data.message === "Connexion réussie") {
 
@@ -52,17 +49,17 @@
 
             alert("Connexion réussie");
 
-            // redirection
+            // 🔥 redirection
             window.location.href = "dashboard.html";
-          }
-           else {
+
+          } else {
             alert(data.message);
           }
 
         })
-      .catch(err => console.log(err));
+        .catch(err => console.log(err));
 
-        });
-</script>
-</body>
+      });
+    </script>
+  </body>
 </html>
