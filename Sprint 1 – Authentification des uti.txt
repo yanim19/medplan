@@ -1,0 +1,27 @@
+Sprint 1 – Authentification des utilisateurs
+
+Objectif :
+Mettre en place la gestion des comptes utilisateurs.
+
+User Stories :
+
+-En tant qu’utilisateur, je veux créer un compte.
+
+-En tant qu’utilisateur, je veux me connecter à mon compte.
+
+-En tant qu’utilisateur, je veux me déconnecter.
+
+Tâches réalisées :
+
+-Création de la table users dans la base de données.
+
+-Développement du fichier auth.js.
+
+-Création de l’API /register.
+
+-Création de l’API /login.
+
+-Test des routes avec Postman.
+
+Résultat :
+Les utilisateurs peuvent créer un compte et se connecter au système.

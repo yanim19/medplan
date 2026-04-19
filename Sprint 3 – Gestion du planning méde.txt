@@ -1,0 +1,23 @@
+Sprint 3 – Gestion du planning médecin
+
+Objectif :
+Permettre aux médecins de gérer leurs disponibilités.
+
+User Stories :
+
+-En tant que médecin, je veux ajouter mes disponibilités.
+
+-En tant que médecin, je veux modifier mes créneaux.
+
+Tâches réalisées :
+
+-Création de la table availability.
+
+-Développement du fichier planning.js.
+
+-Création de l’API /planning/add.
+
+-Test de l’ajout des créneaux disponibles.
+
+Résultat :
+Les médecins peuvent ajouter leurs créneaux disponibles.

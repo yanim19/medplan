@@ -1,19 +1,22 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
+const db = require("../db/db");
 
-// ajouter disponibilité
-router.post('/', (req, res) => {
-  res.json({ message: "Créneau ajouté" });
-});
+router.post("/add",(req,res)=>{
 
-// modifier
-router.put('/', (req, res) => {
-  res.json({ message: "Créneau modifié" });
-});
+ const {doctor_id,date,start_time,end_time} = req.body;
 
-// supprimer
-router.delete('/', (req, res) => {
-  res.json({ message: "Créneau supprimé" });
+ const sql = `
+ INSERT INTO availability (doctor_id,date,start_time,end_time)
+ VALUES (?,?,?,?)
+ `;
+
+ db.query(sql,[doctor_id,date,start_time,end_time],(err,result)=>{
+    if(err) return res.status(500).json(err);
+
+    res.json({message:"Disponibilité ajoutée"});
+ });
+
 });
 
 module.exports = router;

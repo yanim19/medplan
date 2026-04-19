@@ -21,6 +21,48 @@
 
     <br>
     <a href="register.html">Créer un compte</a>
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", function(e){
+
+          e.preventDefault();
+
+          const email = document.getElementById("email").value;
+          const password = document.getElementById("password").value;
+
+          fetch("http://localhost:3000/api/auth/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email, password })
+          })
+          .then(res => res.json())
+          .then(data => {
+            alert(data.message);
+            console.log(data);
+          })
+          
+        .then(data => {
+
+          if(data.message === "Connexion réussie") {
+
+            // 🔥 sauvegarder utilisateur
+            localStorage.setItem("user", JSON.stringify(data.user));
+
+            alert("Connexion réussie");
+
+            // redirection
+            window.location.href = "dashboard.html";
+          }
+           else {
+            alert(data.message);
+          }
+
+        })
+      .catch(err => console.log(err));
+
+        });
+</script>
 
 </body>
 </html>

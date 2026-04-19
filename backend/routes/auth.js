@@ -1,28 +1,58 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
+const db = require("../db/db");
 
 // inscription
-router.post('/register', (req, res) => {
-  const { email, password, role } = req.body;
+router.post("/register", (req, res) => {
+  
+  console.log(req.body);
 
-  // ici normalement on enregistre dans la BD
-  if (!email || !password) {
-    return res.status(400).json({ message: "Données invalides" });
-  }
+  const { name, email, password } = req.body;
 
-  res.json({ message: "Utilisateur créé avec succès" });
-});
+  const sql = "INSERT INTO users (name,email,password) VALUES (?,?,?)";
 
-// connexion
-router.post('/login', (req, res) => {
-  const { email, password } = req.body;
+  db.query(sql, [name,email,password], (err,result)=>{
+    if(err){
+      return res.status(500).json(err);
+    }
 
-  // normalement vérifier dans BD
-  if (email === "test@test.com" && password === "123") {
-    return res.json({ message: "Connexion réussie", role: "patient" });
-  }
+    res.json({message:"Utilisateur créé"});
+  });
 
-  res.status(401).json({ message: "Email ou mot de passe incorrect" });
 });
 
 module.exports = router;
+
+//LOGIN
+router.post("/login", (req, res) => {
+
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.json({ message: "Champs manquants" });
+  }
+
+  const sql = "SELECT * FROM users WHERE email = ?";
+
+  db.query(sql, [email], (err, result) => {
+
+    if (err) {
+      console.log(err);
+      return res.status(500).json({ message: "Erreur serveur" });
+    }
+
+    if (result.length === 0) {
+      return res.json({ message: "Utilisateur non trouvé" });
+    }
+
+    const user = result[0];
+
+    if (user.password !== password) {
+      return res.json({ message: "Mot de passe incorrect" });
+    }
+
+    res.json({ message: "Connexion réussie", user });
+
+  });
+
+});

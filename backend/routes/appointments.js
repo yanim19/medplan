@@ -1,25 +1,63 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
+const db = require("../db/db");
 
-// voir les créneaux
-router.get('/', (req, res) => {
-  res.json([
-    { doctor: "Dr Ali", date: "10/02/2026 10:00" },
-    { doctor: "Dr Sana", date: "10/02/2026 14:00" }
-  ]);
+
+// Voir tous les rendez-vous
+router.get("/", (req, res) => {
+
+  const sql = `
+    SELECT appointments.*, users.name AS patient, doctors.speciality
+    FROM appointments
+    JOIN users ON appointments.patient_id = users.id
+    JOIN doctors ON appointments.doctor_id = doctors.id
+  `;
+
+  db.query(sql, (err, result) => {
+    if (err) return res.status(500).json(err);
+
+    res.json(result);
+  });
+
 });
 
-// réserver
-router.post('/', (req, res) => {
-  const { doctor, date } = req.body;
 
-  // normalement vérifier si dispo
-  res.json({ message: "Rendez-vous confirmé" });
+// Créer un rendez-vous
+router.post("/create", (req, res) => {
+
+  const { patient_id, doctor_id, appointment_date, appointment_time } = req.body;
+
+  const sql = `
+    INSERT INTO appointments (patient_id, doctor_id, appointment_date, appointment_time)
+    VALUES (?, ?, ?, ?)
+  `;
+
+  db.query(sql, [patient_id, doctor_id, appointment_date, appointment_time], (err, result) => {
+
+    if (err) return res.status(500).json(err);
+
+    res.json({ message: "Rendez-vous créé avec succès" });
+
+  });
+
 });
 
-// annuler
-router.delete('/', (req, res) => {
-  res.json({ message: "Rendez-vous annulé" });
+
+// Annuler un rendez-vous
+router.delete("/:id", (req, res) => {
+
+  const id = req.params.id;
+
+  const sql = "DELETE FROM appointments WHERE id = ?";
+
+  db.query(sql, [id], (err, result) => {
+
+    if (err) return res.status(500).json(err);
+
+    res.json({ message: "Rendez-vous supprimé" });
+
+  });
+
 });
 
 module.exports = router;

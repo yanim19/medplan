@@ -9,7 +9,7 @@
 
     <h2>Créer un compte</h2>
 
-    <form>
+    <form method="post">
     <label>Nom :</label>
     <input type="text"><br><br>
 
@@ -33,6 +33,27 @@
 
     <br>
     <a href="login.html">Déjà inscrit ? Se connecter</a>
+    <script>
+        document.getElementById("registerForm").addEventListener("submit", function(e){
+        e.preventDefault(); // ⚠️ empêche GET
 
+        const name = document.getElementById("name").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        fetch("http://localhost:3000/api/auth/register", {
+            method: "POST", //
+            headers: {
+            "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ name, email, password })
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+        })
+        .catch(err => console.log(err));
+        });
+    </script>
 </body>
 </html>
