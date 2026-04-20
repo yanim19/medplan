@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prendre Rendez-vous</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Prendre Rendez-vous</h2>
+        
+        <form id="appointmentForm">
+            <div>
+                <label>Patient ID:</label>
+                <input type="number" id="patient_id" required placeholder="Entrez l'ID du patient">
+                
+            </div>
+            
+            <div>
+                <label>Doctor ID:</label>
+                <input type="number" id="doctor_id" required placeholder="Entrez l'ID du médecin">
+                
+            </div>
+            
+            <div>
+                <label>Date:</label>
+                <input type="date" id="appointment_date" required>
+            
+            </div>
+            
+            <div>
+                <label>Heure:</label>
+                <input type="time" id="appointment_time" required>
+            </div>
+            
+            <button type="submit">Prendre RDV</button>
+        </form>
+
+        <div id="result"></div>
+        
+        
+        <button id="viewAppointments" type="button">Voir tous les rendez-vous</button>
+        <div id="appointmentsList"></div>
+    </div>
+    <!-- Ajoutez ce bouton pour voir tous les rendez-vous -->
+    <button onclick="window.location.href='manageappointements.html'">📋 Gérer tous les rendez-vous</button>
+
+    <script>
+        // Handle appointment creation
+        document.getElementById("appointmentForm").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            
+            const patient_id = document.getElementById("patient_id").value;
+            const doctor_id = document.getElementById("doctor_id").value;
+            const appointment_date = document.getElementById("appointment_date").value;
+            const appointment_time = document.getElementById("appointment_time").value;
+            
+            // Validate date is not empty
+            if (!appointment_date || !appointment_time) {
+                document.getElementById("result").innerHTML = 
+                    '<p class="error">Veuillez sélectionner une date et une heure</p>';
+                return;
+            }
+            
+            const data = {
+                patient_id: parseInt(patient_id),
+                doctor_id: parseInt(doctor_id),
+                appointment_date: appointment_date, // Already in YYYY-MM-DD format from date input
+                appointment_time: appointment_time
+            };
+            
+            console.log("Sending data:", data);
+            
+            try {
+                const response = await fetch("http://localhost:3000/api/appointments", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                console.log("Server response:", result);
+                
+                if (response.ok) {
+                    document.getElementById("result").innerHTML = 
+                        '<p class="success">✓ Rendez-vous créé avec succès! ID: ' + result.id + '</p>';
+                    document.getElementById("appointmentForm").reset();
+                    loadAppointments(); // Refresh the list
+                } else {
+                    let errorMsg = result.message || result.error || "Erreur inconnue";
+                    if (result.sqlMessage) errorMsg += " - " + result.sqlMessage;
+                    document.getElementById("result").innerHTML = 
+                        '<p class="error">Erreur: ' + errorMsg + '</p>';
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                document.getElementById("result").innerHTML = 
+                    '<p class="error">Erreur de connexion au serveur: ' + error.message + '</p>';
+            }
+        });
+        
+        // View all appointments
+        document.getElementById("viewAppointments").addEventListener("click", loadAppointments);
+        
+        async function loadAppointments() {
+            try {
+                const response = await fetch("http://localhost:3000/api/appointments");
+                const appointments = await response.json();
+                
+                if (appointments.length === 0) {
+                    document.getElementById("appointmentsList").innerHTML = 
+                        '<p>Aucun rendez-vous trouvé</p>';
+                    return;
+                }
+                
+                let html = '<h3>Liste des rendez-vous:</h3><ul>';
+                appointments.forEach(apt => {
+                    html += `<li>ID: ${apt.id} - Patient: ${apt.patient_name || apt.patient_id} - 
+                            Date: ${new Date(apt.date).toLocaleString()} - 
+                            Statut: ${apt.status}</li>`;
+                });
+                html += '</ul>';
+                document.getElementById("appointmentsList").innerHTML = html;
+            } catch (error) {
+                console.error("Error loading appointments:", error);
+                document.getElementById("appointmentsList").innerHTML = 
+                    '<p class="error">Erreur chargement des rendez-vous: ' + error.message + '</p>';
+            }
+        }
+        
+        
+        // Load appointments on page load
+        loadAppointments();
+        
+
+    </script>
+</body>
+</html>

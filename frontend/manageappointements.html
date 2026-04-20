@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gérer les Rendez-vous</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>📋 Gestion des Rendez-vous</h1>
+        
+        <div class="filters">
+            <strong>Filtrer par statut:</strong>
+            <button class="filter-btn" data-filter="all">Tous</button>
+            <button class="filter-btn" data-filter="confirmé">Confirmés</button>
+            <button class="filter-btn" data-filter="annulé">Annulés</button>
+        </div>
+        
+        <button class="btn-refresh" onclick="loadAppointments()">🔄 Actualiser</button>
+        
+        <div id="message"></div>
+        <div id="appointmentsList">
+            <div class="loading">Chargement des rendez-vous...</div>
+        </div>
+    </div>
+
+    <script>
+        let allAppointments = [];
+        let currentFilter = 'all';
+        
+        // Charger tous les rendez-vous
+        async function loadAppointments() {
+            const container = document.getElementById("appointmentsList");
+            container.innerHTML = '<div class="loading">Chargement des rendez-vous...</div>';
+            
+            try {
+                const response = await fetch("http://localhost:3000/api/appointments");
+                const data = await response.json();
+                
+                if (!Array.isArray(data)) {
+                    throw new Error("Données invalides");
+                }
+                
+                allAppointments = data;
+                displayAppointments();
+            } catch (error) {
+                console.error("Error:", error);
+                container.innerHTML = '<div class="message message-error">❌ Erreur chargement des rendez-vous</div>';
+            }
+        }
+        
+        // Afficher les rendez-vous avec filtre
+        function displayAppointments() {
+            const container = document.getElementById("appointmentsList");
+            
+            let filtered = allAppointments;
+            if (currentFilter !== 'all') {
+                filtered = allAppointments.filter(apt => apt.status === currentFilter);
+            }
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="message">📭 Aucun rendez-vous trouvé</div>';
+                return;
+            }
+            
+            let html = '';
+            filtered.forEach(apt => {
+                const dateObj = new Date(apt.date);
+                const formattedDate = dateObj.toLocaleString('fr-FR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                const statusClass = apt.status === 'confirmé' ? 'status-confirmé' : 'status-annulé';
+                
+                html += `
+                    <div class="appointment-card ${apt.status}">
+                        <div class="appointment-info">
+                            <div>
+                                <span class="info-label">ID:</span>
+                                <span class="info-value">#${apt.id}</span>
+                            </div>
+                            <div>
+                                <span class="info-label">Patient:</span>
+                                <span class="info-value">${apt.patient_name || apt.patient_id}</span>
+                            </div>
+                            <div>
+                                <span class="info-label">Médecin:</span>
+                                <span class="info-value">${apt.specialite || apt.doctor_id}</span>
+                            </div>
+                            <div>
+                                <span class="info-label">Date:</span>
+                                <span class="info-value">${formattedDate}</span>
+                            </div>
+                            <div>
+                                <span class="info-label">Statut:</span>
+                                <span class="status-badge ${statusClass}">${apt.status}</span>
+                            </div>
+                        </div>
+                `;
+                
+                // Boutons d'action (seulement si le rendez-vous n'est pas déjà annulé)
+                if (apt.status === 'confirmé') {
+                    html += `
+                        <div class="actions">
+                            <button class="btn-cancel" onclick="cancelAppointment(${apt.id})">
+                                 Annuler le rendez-vous
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div class="actions">
+                            <button class="btn-delete" onclick="deleteAppointment(${apt.id})">
+                                 Supprimer définitivement
+                            </button>
+                        </div>
+                    `;
+                }
+                
+                html += `</div>`;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        // Annuler un rendez-vous (changer le statut)
+        async function cancelAppointment(id) {
+            if (!confirm("Êtes-vous sûr de vouloir annuler ce rendez-vous ?")) {
+                return;
+            }
+            
+            const messageDiv = document.getElementById("message");
+            messageDiv.innerHTML = '<div class="message message-success"> Annulation en cours...</div>';
+            
+            try {
+                const response = await fetch(`http://localhost:3000/api/appointments/cancel/${id}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" }
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    messageDiv.innerHTML = '<div class="message message-success"> ' + result.message + '</div>';
+                    loadAppointments(); // Recharger la liste
+                    
+                    // Effacer le message après 3 secondes
+                    setTimeout(() => {
+                        messageDiv.innerHTML = '';
+                    }, 3000);
+                } else {
+                    messageDiv.innerHTML = '<div class="message message-error"> ' + (result.message || "Erreur") + '</div>';
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                messageDiv.innerHTML = '<div class="message message-error"> Erreur de connexion</div>';
+            }
+        }
+        
+        // Supprimer définitivement un rendez-vous
+        async function deleteAppointment(id) {
+            if (!confirm(" Supprimer définitivement ce rendez-vous ? Cette action est irréversible.")) {
+                return;
+            }
+            
+            const messageDiv = document.getElementById("message");
+            messageDiv.innerHTML = '<div class="message message-success"> Suppression en cours...</div>';
+            
+            try {
+                const response = await fetch(`http://localhost:3000/api/appointments/${id}`, {
+                    method: "DELETE"
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    messageDiv.innerHTML = '<div class="message message-success"> ' + result.message + '</div>';
+                    loadAppointments(); // Recharger la liste
+                    
+                    setTimeout(() => {
+                        messageDiv.innerHTML = '';
+                    }, 3000);
+                } else {
+                    messageDiv.innerHTML = '<div class="message message-error"> ' + (result.message || "Erreur") + '</div>';
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                messageDiv.innerHTML = '<div class="message message-error"> ' + "Erreur de connexion" + '</div>';
+            }
+        }
+        
+        // Filtrer les rendez-vous
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Retirer la classe active de tous les boutons
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                // Ajouter la classe active au bouton cliqué
+                btn.classList.add('active');
+                // Mettre à jour le filtre
+                currentFilter = btn.getAttribute('data-filter');
+                displayAppointments();
+            });
+        });
+        
+        // Charger les rendez-vous au démarrage
+        loadAppointments();
+    </script>
+</body>
+</html>

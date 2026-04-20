@@ -1,28 +1,24 @@
 <!DOCTYPE html>
-<html lang="fr">
-    <head>
-    <meta charset="UTF-8">
+<html>
+<head>
     <title>Dashboard</title>
-    </head>
-    <body>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-        <h2>Bienvenue</h2>
+<h2>Bienvenue dans votre espace</h2>
 
-        <button onclick="logout()">Se déconnecter</button>
+<a href="appointments.html">Gérer les rendez-vous</a><br><br>
 
-        <script>
-            function logout() {
+<button onclick="logout()">Se déconnecter</button>
 
-            // 🔥 supprimer les données utilisateur
-            localStorage.removeItem("user");
+<script>
+function logout() {
+  localStorage.removeItem("user");
+  window.location.href = "login.html";
+}
+</script>
 
-            // 🔥 message
-            alert("Déconnexion réussie");
-
-            // 🔥 redirection vers login
-            window.location.href = "login.html";
-            }
-        </script>
-
-    </body>
+</body>
 </html>
