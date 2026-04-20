@@ -27,9 +27,11 @@ db.connect((err) => {
 
 // Import your auth routes
 const authRoutes = require("./routes/auth");
+const appointmentRoutes = require("./routes/appointments");
 
 // Mount the routes - THIS IS THE KEY STEP
 app.use("/api/auth", authRoutes);
+app.use("/api/appointments", appointmentRoutes);
 
 app.post('/register', (req, res) => {
   const { nom, prenom, email, password, role } = req.body;
@@ -72,8 +74,24 @@ app.get('/availability/:id', (req, res) => {
     }
   );
 });
-function showAvailability(id){
+/*function showAvailability(id){
   fetch(`http://localhost:3000/availability/${id}`)
   .then(res => res.json())
   .then(data => alert(JSON.stringify(data)));
-}
+}*/
+app.get('/availability/:id', (req, res) => {
+  const id = req.params.id;
+
+  // Your availability table has a 'date' column
+  db.query(
+    "SELECT * FROM availability WHERE doctor_id = ? AND date > NOW()",
+    [id],
+    (err, result) => {
+      if (err) {
+        console.log("Availability error:", err);
+        return res.status(500).json({ message: "Erreur serveur", error: err.message });
+      }
+      res.json(result);
+    }
+  );
+});
