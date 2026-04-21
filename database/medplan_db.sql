@@ -46,11 +46,14 @@ CREATE TABLE `appointments` (
 -- Table structure for table `availability`
 --
 
-CREATE TABLE `availability` (
-  `id` int(11) NOT NULL,
-  `doctor_id` int(11) DEFAULT NULL,
-  `date` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE availability (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  doctor_id INT,
+  date DATE,
+  start_time TIME,
+  end_time TIME
+); ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 
 --
 

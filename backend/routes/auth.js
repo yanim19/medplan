@@ -1,58 +1,82 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../db/db");
+const bcrypt = require("bcrypt");
 
-// inscription
-router.post("/register", (req, res) => {
-  
-  console.log(req.body);
+// ================= REGISTER ================= //
 
-  const { name, email, password } = req.body;
+router.post("/register", async (req, res) => {
+  const { nom, prenom, email, password, role } = req.body;
 
-  const sql = "INSERT INTO users (name,email,password) VALUES (?,?,?)";
+  if (!nom || !prenom || !email || !password || !role) {
+    return res.status(400).json({ message: "Tous les champs sont requis" });
+  }
 
-  db.query(sql, [name,email,password], (err,result)=>{
-    if(err){
-      return res.status(500).json(err);
+  db.query("SELECT id FROM users WHERE email = ?", [email], async (err, results) => {
+    if (err) return res.status(500).json({ message: "Erreur serveur" });
+
+    if (results.length > 0) {
+      return res.status(409).json({ message: "Email déjà utilisé" });
     }
 
-    res.json({message:"Utilisateur créé"});
-  });
+    try {
+      const hashedPassword = await bcrypt.hash(password, 10);
 
+      const sql = `INSERT INTO users (nom, prenom, email, password, role) VALUES (?, ?, ?, ?, ?)`;
+
+      db.query(sql, [nom, prenom, email, hashedPassword, role], (err) => {
+        if (err) return res.status(500).json({ message: "Erreur lors de la création" });
+        res.status(201).json({ message: "Compte créé avec succès !" });
+      });
+
+    } catch (err) {
+      res.status(500).json({ message: "Erreur serveur" });
+    }
+  });
 });
 
-module.exports = router;
+// ================= LOGIN ================= //
 
-//LOGIN
 router.post("/login", (req, res) => {
-
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.json({ message: "Champs manquants" });
+    return res.status(400).json({ message: "Email et mot de passe requis" });
   }
 
   const sql = "SELECT * FROM users WHERE email = ?";
 
-  db.query(sql, [email], (err, result) => {
+  db.query(sql, [email], async (err, results) => {
+    if (err) return res.status(500).json({ message: "Erreur serveur" });
 
-    if (err) {
-      console.log(err);
-      return res.status(500).json({ message: "Erreur serveur" });
+    if (results.length === 0) {
+      return res.status(401).json({ message: "Email ou mot de passe incorrect" });
     }
 
-    if (result.length === 0) {
-      return res.json({ message: "Utilisateur non trouvé" });
+    const user = results[0];
+
+    try {
+      const isMatch = await bcrypt.compare(password, user.password);
+
+      if (!isMatch) {
+        return res.status(401).json({ message: "Email ou mot de passe incorrect" });
+      }
+
+      res.json({
+        message: "Connexion réussie",
+        user: {
+          id: user.id,
+          nom: user.nom,
+          prenom: user.prenom,
+          email: user.email,
+          role: user.role,
+        },
+      });
+
+    } catch (err) {
+      res.status(500).json({ message: "Erreur serveur" });
     }
-
-    const user = result[0];
-
-    if (user.password !== password) {
-      return res.json({ message: "Mot de passe incorrect" });
-    }
-
-    res.json({ message: "Connexion réussie", user });
-
   });
-
 });
+
+module.exports = router;

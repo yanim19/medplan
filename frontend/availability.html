@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Disponibilité Médecin</title>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>Ajouter une disponibilité</h2>
+
+<form id="availabilityForm">
+  <label>ID Médecin:</label>
+  <input type="number" id="doctor_id" placeholder="ID Médecin" required>
+
+  <label>Date:</label>
+  <input type="date" id="date" required><br><br>
+
+  <label>Heure début:</label>
+  <input type="time" id="start_time" required><br><br>
+
+  <label>Heure fin:</label>
+  <input type="time" id="end_time" required><br><br>
+
+  <button type="submit">Ajouter disponibilité</button>
+</form>
+
+<div id="message"></div>
+
+<h3>Liste des disponibilités</h3>
+<button type="button" onclick="loadAvailability()" style="background-color: #2196F3; margin-bottom: 10px;">🔄 Actualiser</button>
+<ul id="list"></ul>
+
+<script>
+
+// ➕ Ajouter disponibilité
+document.getElementById("availabilityForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+
+  const doctor_id  = document.getElementById("doctor_id").value;
+  const date       = document.getElementById("date").value;
+  const start_time = document.getElementById("start_time").value;
+  const end_time   = document.getElementById("end_time").value;
+
+  if (!doctor_id || !date || !start_time || !end_time) {
+    document.getElementById("message").innerHTML =
+      '<div class="error">❌ Veuillez remplir tous les champs</div>';
+    return;
+  }
+
+  const data = {
+    doctor_id: parseInt(doctor_id),
+    date,
+    start_time,
+    end_time
+  };
+
+  try {
+    const response = await fetch("http://localhost:3000/api/availability", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      document.getElementById("message").innerHTML =
+        '<div class="success">✅ ' + result.message + '</div>';
+      document.getElementById("availabilityForm").reset();
+      document.getElementById("doctor_id").value = doctor_id;
+      loadAvailability();
+
+      setTimeout(() => {
+        document.getElementById("message").innerHTML = '';
+      }, 3000);
+
+    } else {
+      document.getElementById("message").innerHTML =
+        '<div class="error">❌ ' + (result.message || "Erreur") + '</div>';
+    }
+
+  } catch (error) {
+    document.getElementById("message").innerHTML =
+      '<div class="error">❌ Erreur de connexion: ' + error.message + '</div>';
+  }
+});
+
+// 📋 Charger disponibilités
+async function loadAvailability() {
+  const doctor_id = document.getElementById("doctor_id").value;
+
+  if (!doctor_id) {
+    document.getElementById("list").innerHTML = '<li>Veuillez entrer un ID médecin</li>';
+    return;
+  }
+
+  const list = document.getElementById("list");
+  list.innerHTML = '<li>Chargement...</li>';
+
+  try {
+    const response = await fetch(`http://localhost:3000/api/availability/${doctor_id}`);
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const data = await response.json();
+
+    if (!data || data.length === 0) {
+      list.innerHTML = '<li>📭 Aucune disponibilité trouvée pour ce médecin</li>';
+      return;
+    }
+
+    list.innerHTML = "";
+    data.forEach(d => {
+      const li = document.createElement("li");
+
+      // ✅ Fix: use d.date for date, slice start_time and end_time for hours
+      const formattedDate = new Date(d.date).toLocaleDateString('fr-FR', {
+        timeZone: 'UTC'
+      });
+
+      const start = d.start_time.slice(0, 5);
+      const end   = d.end_time.slice(0, 5);
+
+      li.innerHTML = `
+        <strong>📅 ${formattedDate}</strong><br>
+        ⏰ ${start} - ${end}
+      `;
+      list.appendChild(li);
+    });
+
+  } catch (error) {
+    list.innerHTML = '<li class="error">❌ Erreur chargement des disponibilités</li>';
+  }
+}
+
+// Recharger quand l'ID médecin change
+document.getElementById("doctor_id").addEventListener("change", function() {
+  if (this.value) loadAvailability();
+});
+
+// Charger au démarrage
+loadAvailability();
+
+</script>
+
+</body>
+</html>
