@@ -38,6 +38,17 @@ app.use('/api/appointments', appointmentsRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/planning', planningRoutes);
 
+app.get('/register', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/register.html'));
+});
+
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/login.html'));
+});
+
+app.get('/dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/dashboard.html'));
+});
 // Get doctors
 app.get('/api/doctors', (req, res) => {
   const sql = `
