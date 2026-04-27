@@ -84,11 +84,13 @@
         }
 
         slots.forEach(slot => {
+          // ✅ slot.date est une colonne séparée dans availability
           const formattedDate = new Date(slot.date).toLocaleDateString('fr-FR', { timeZone: 'UTC' });
           const start = slot.start_time.slice(0, 5);
           const end   = slot.end_time.slice(0, 5);
 
           const option = document.createElement("option");
+          // ✅ on stocke la date et l'heure de début pour le RDV
           option.value = JSON.stringify({ date: slot.date, time: slot.start_time });
           option.textContent = `📅 ${formattedDate} ⏰ ${start} - ${end}`;
           slotSelect.appendChild(option);
@@ -99,7 +101,7 @@
       }
     }
 
-    // When doctor changes, load their slots
+    // Quand le médecin change → charger ses créneaux
     document.getElementById("doctor_id").addEventListener("change", function() {
       if (this.value) {
         loadSlots(this.value);
@@ -108,7 +110,7 @@
       }
     });
 
-    // When slot changes, fill hidden fields
+    // Quand le créneau change → remplir les champs cachés
     document.getElementById("slot_id").addEventListener("change", function() {
       if (this.value) {
         const slot = JSON.parse(this.value);
@@ -170,25 +172,28 @@
 
         const list = document.getElementById("appointmentsList");
 
-        if (appointments.length === 0) {
+        if (!Array.isArray(appointments) || appointments.length === 0) {
           list.innerHTML = '<li>Aucun rendez-vous trouvé</li>';
           return;
         }
 
         list.innerHTML = "";
         appointments.forEach(apt => {
-          const formattedDate = new Date(apt.appointment_date).toLocaleDateString('fr-FR', {
+          // ✅ apt.date contient "2026-12-12 10:00:00"
+          const formattedDate = new Date(apt.date).toLocaleDateString('fr-FR', {
             timeZone: 'UTC'
           });
-          const formattedTime = apt.appointment_time
-            ? apt.appointment_time.slice(0, 5)
-            : '';
+          const formattedTime = new Date(apt.date).toLocaleTimeString('fr-FR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'UTC'
+          });
 
           const li = document.createElement("li");
           li.innerHTML = `
             ID: ${apt.id} - 
-            Patient: ${apt.patient_nom} ${apt.patient_prenom} - 
-            Médecin: Dr. ${apt.doctor_nom} ${apt.doctor_prenom} - 
+            Patient: ${apt.patient_name} - 
+            Médecin: Dr. ${apt.doctor_name} (${apt.specialite}) - 
             📅 ${formattedDate} à ${formattedTime} - 
             Statut: ${apt.status}
           `;
