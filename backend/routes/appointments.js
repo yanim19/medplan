@@ -2,112 +2,105 @@ const express = require("express");
 const router = express.Router();
 const db = require("../db/db");
 
-// Voir tous les rendez-vous
+// ================= VOIR TOUS LES RDV ================= //
 router.get("/", (req, res) => {
   const sql = `
-    SELECT appointments.*, 
-           CONCAT(users.nom, ' ', users.prenom) AS patient_name,
-           doctors.specialite
+    SELECT 
+      appointments.id,
+      appointments.date,
+      appointments.status,
+      appointments.patient_id,
+      appointments.doctor_id,
+      CONCAT(patients.nom, ' ', patients.prenom) AS patient_name,
+      CONCAT(doctors_users.nom, ' ', doctors_users.prenom) AS doctor_name,
+      doctors.specialite
     FROM appointments
-    JOIN users ON appointments.patient_id = users.id
+    JOIN users AS patients ON appointments.patient_id = patients.id
     JOIN doctors ON appointments.doctor_id = doctors.id
+    JOIN users AS doctors_users ON doctors.user_id = doctors_users.id
     ORDER BY appointments.date DESC
   `;
 
   db.query(sql, (err, result) => {
     if (err) {
-      console.error("GET Error:", err);
-      return res.status(500).json([]);
+      console.error("GET Error:", err.message);
+      return res.status(500).json({ message: err.message });
     }
     res.json(result || []);
   });
 });
 
-// Créer un rendez-vous
+// ================= CRÉER UN RDV ================= //
 router.post("/", (req, res) => {
-  console.log("=== NEW APPOINTMENT REQUEST ===");
-  console.log("Headers:", req.headers);
-  console.log("Body:", req.body);
-  
   const { patient_id, doctor_id, appointment_date, appointment_time } = req.body;
-  
-  // Validation
+
   if (!patient_id || !doctor_id || !appointment_date || !appointment_time) {
-    console.log("Missing fields");
-    return res.status(400).json({ 
-      message: "Champs manquants. Veuillez fournir: patient_id, doctor_id, appointment_date, appointment_time" 
-    });
+    return res.status(400).json({ message: "Champs manquants" });
   }
-  
-  // Create datetime string
+
+  // ✅ Combine date + time en un seul datetime
   const datetime = `${appointment_date} ${appointment_time}:00`;
-  console.log(`Creating appointment: patient=${patient_id}, doctor=${doctor_id}, datetime=${datetime}`);
-  
-  const sql = "INSERT INTO appointments (patient_id, doctor_id, date, status) VALUES (?, ?, ?, 'confirmé')";
-  
-  db.query(sql, [patient_id, doctor_id, datetime], (err, result) => {
-    if (err) {
-      console.error("Database Error:", err);
-      
-      if (err.code === 'ER_NO_REFERENCED_ROW_2') {
-        return res.status(400).json({ 
-          message: "Patient ou médecin n'existe pas. Patient ID: " + patient_id + ", Doctor ID: " + doctor_id 
-        });
-      }
-      
-      return res.status(500).json({ 
-        message: "Erreur serveur: " + err.message,
-        code: err.code
-      });
+
+  // ✅ Vérifier conflit — même médecin même datetime
+  const conflictSQL = `
+    SELECT * FROM appointments
+    WHERE doctor_id = ? AND date = ?
+  `;
+
+  db.query(conflictSQL, [doctor_id, datetime], (err, conflicts) => {
+    if (err) return res.status(500).json({ message: "Erreur serveur: " + err.message });
+
+    if (conflicts.length > 0) {
+      return res.status(409).json({ message: "Ce créneau est déjà réservé" });
     }
-    
-    console.log("✅ Appointment created! ID:", result.insertId);
-    res.json({ 
-      message: "Rendez-vous créé avec succès",
-      id: result.insertId 
+
+    // ✅ Insérer le RDV
+    const sql = `
+      INSERT INTO appointments (patient_id, doctor_id, date, status)
+      VALUES (?, ?, ?, 'confirmé')
+    `;
+
+    db.query(sql, [patient_id, doctor_id, datetime], (err, result) => {
+      if (err) {
+        console.error("Database Error:", err.message);
+        if (err.code === 'ER_NO_REFERENCED_ROW_2') {
+          return res.status(400).json({ message: "Patient ou médecin n'existe pas" });
+        }
+        return res.status(500).json({ message: "Erreur serveur: " + err.message });
+      }
+
+      res.status(201).json({ message: "Rendez-vous créé avec succès", id: result.insertId });
     });
   });
 });
 
-// Annuler un rendez-vous (PUT - pour update le statut)
+// ================= ANNULER UN RDV ================= //
 router.put("/cancel/:id", (req, res) => {
-  const id = req.params.id;
-  console.log("Cancelling appointment ID:", id);
-  
   const sql = "UPDATE appointments SET status = 'annulé' WHERE id = ? AND status = 'confirmé'";
-  
-  db.query(sql, [id], (err, result) => {
-    if (err) {
-      console.error("Cancel Error:", err);
-      return res.status(500).json({ message: "Erreur serveur" });
-    }
-    
+
+  db.query(sql, [req.params.id], (err, result) => {
+    if (err) return res.status(500).json({ message: "Erreur serveur" });
+
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Rendez-vous non trouvé ou déjà annulé" });
     }
-    
+
     res.json({ message: "Rendez-vous annulé avec succès" });
   });
 });
 
-// Supprimer définitivement un rendez-vous (DELETE)
+// ================= SUPPRIMER UN RDV ================= //
 router.delete("/:id", (req, res) => {
-  const id = req.params.id;
-  console.log("Deleting appointment ID:", id);
-  
-  const sql = "DELETE FROM appointments WHERE id = ? AND status = 'annulé'";
-  
-  db.query(sql, [id], (err, result) => {
-    if (err) {
-      console.error("Delete Error:", err);
-      return res.status(500).json({ message: "Erreur serveur" });
-    }
-    
+  const sql = "DELETE FROM appointments WHERE id = ?";
+
+  db.query(sql, [req.params.id], (err, result) => {
+    if (err) return res.status(500).json({ message: "Erreur serveur" });
+
     if (result.affectedRows === 0) {
-      return res.status(404).json({ message: "Rendez-vous non trouvé ou non annulé" });
+      return res.status(404).json({ message: "Rendez-vous non trouvé" });
     }
-    
-    res.json({ message: "Rendez-vous supprimé définitivement" });
+
+    res.json({ message: "Rendez-vous supprimé" });
   });
 });
 
